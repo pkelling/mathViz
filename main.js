@@ -1,9 +1,6 @@
 /*
     TODO:
-    -add delete preferences (what I use for ϴ. and S.)
-    -add option to remove special chars from escape list (like alpha or epsilon)
     -display options:
-        =at right or where clicked? (Default: for 1 line, where clicked, for multiple, at right)
         =distance from right
         =css options (background, font, size....,padding)
     
@@ -49,12 +46,42 @@ define(function (require, exports, module) {
                     arctan:"Math\\.atan"
     });
     
+    var cssPrefHandle = prefs.definePreference("style","object",{
+        mathDiv:  {selector:'#', css:{}},
+        equations:{selector:'.', css:{}},
+        comments: {selector:'.', css:{}}
+    });
     
     
     // get prefs
     var dontShow = prefs.get("dontShow"); 
     var dontEscape = prefs.get('dontEscape');
     var replaceObj = prefs.get('replace');
+    var cssPrefs = prefs.get('style');
+    
+    
+    
+    /* ***********************************************
+        Handle Css prefs and changes
+    */
+    function cssChanges(cssPrefs){
+        for(var tag in cssPrefs){
+            
+            var obj = cssPrefs[tag];
+            var selector = obj.selector;
+            var handle = $(selector+tag);
+            handle.css(obj.css);
+                
+        }
+    }
+    
+    cssChanges(cssPrefs);
+    
+    cssPrefHandle.on('change',function(){
+        cssChanges(prefs.get('style'));
+    });
+    
+    
     
     
     
@@ -71,11 +98,11 @@ define(function (require, exports, module) {
     
     
     
+    
     /* ************************************************
-        This adds the html to the page and create Div handle
+        This adds the html to the page and creates Div handle
             -doesn't show bc => display:none;
     */
-    
     function appendHTML(){   
         // get MathJax filePath to pass to mathHTML
         var filePath =  FileUtils.getNativeModuleDirectoryPath(module) + '/MathJax/MathJax.js?config=default';
@@ -92,6 +119,7 @@ define(function (require, exports, module) {
     
     appendHTML();
     var mathDiv = $('#mathDiv');
+    
     
     
     
@@ -262,7 +290,6 @@ define(function (require, exports, module) {
             _Pos = newEq.indexOf('_',_Pos+2);
         }
         
-        console.log(newEq);
         return(newEq);
     }
     
@@ -292,7 +319,7 @@ define(function (require, exports, module) {
             //Set height
             var divHeight = mathDiv.outerHeight(true);
             var bodyHeight = $('body').outerHeight();
-            var heightDif = (divHeight+top) - bodyHeight;
+            var heightDif = (divHeight+css.top) - bodyHeight;
             if(heightDif > 0){
                 css.height = String(divHeight - heightDif - 75) + 'px';
                 css.overflowY = 'scroll';
@@ -325,7 +352,7 @@ define(function (require, exports, module) {
         for(var i=0; i<allEquations.length; i++){
             if(allEquations[i].indexOf('//') == -1){
                 var newEq = formatEquation(allEquations[i]);
-                newEquations.push("<p> `" + newEq + "` </p>");
+                newEquations.push("<p class='equations'> `" + newEq + "` </p>");
                 numOfEqs++;
             }else{
                 newEquations.push("<p class='comments' >" + allEquations[i] + "</p>");

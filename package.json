@@ -1,0 +1,10 @@
+{
+    "name": "pk.mathDisplay",
+    "title": "Math Visualization",
+    "description": "Visualize math equations using MathJax",
+    "homepage": "https://github.com/pkelling/mathDisplay",
+    "version": "0.1.0",
+    "author": "Patrick Kelling",
+    "keywords": ["math", "visualize", "equations", "MathJax"],
+    "license": "MIT"
+}

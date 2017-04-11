@@ -17,9 +17,7 @@
                 document.getElementById('communicator').value = 'ready';
             });  
         });
-        
-
-        
+       
     </script>
     
     <style>
@@ -32,12 +30,16 @@
             margin-top:1.5em;
             padding-right: 15px;
             font-size: 1.5em;
-            z-index:9999;
+            z-index:500;
             padding: 10px;
             display:none;
         }
+        
+        .equations{
+            
+        }
         .comments{
-            margin-top: 35px;
+            margin-top: 50px;
             font-size: .8em;
             color: #353535;
         }
@@ -52,9 +54,17 @@
     
 </head>
 <body>
+    
+    
+    
     <div id="mathDiv">
-        
     </div>
     <input id="communicator" type="text" value="notReady"/>
+    <p class="comments" style="display:none;"></p>
+    <p class="equations" style="display:none;"></p>
+    
+    
+    
+    
 </body>
 </html>
