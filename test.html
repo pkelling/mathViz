@@ -1,0 +1,58 @@
+<!-- 
+    This is just a place to test how equations are rendered.
+    Put them in a <p> tag below and open in browser;
+        -note: you don't really need the tag
+-->
+
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=default">
+        
+    MathJax.Hub.Config({
+      config: ["MMLorHTML.js"],
+      jax: ["input/AsciiMath","output/HTML-CSS","output/NativeMML", "output/CommonHTML"],
+      extensions: ["asciimath2jax.js","MathMenu.js","MathZoom.js", "CHTML-preview.js"]
+    });
+    
+    var textarea = document.getElementById("textarea");
+    var testDiv = document.getElementById("testDiv");
+    
+    textarea.addEventListener("keyup",function(){
+        testDiv.innerHTML = textarea.value;
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,"testDiv"]);  
+    });
+        
+    </script>
+    
+    <style>
+        textarea{
+            display: inline-block;
+            margin-top:300px;
+            padding: 10px;
+        }
+        #testDiv{
+            display: inline-block;
+            background: #a8af8c;
+            color: black;
+            margin-top: 0px;
+            z-index:9999;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <textarea id="textarea" rows="5" cols="40">
+        `myth = hello_(wo\rld)/wo\rld`
+    </textarea>
+    <div id="testDiv">
+        
+        `myth = hello_(wo\rld)/wo\rld`
+        
+        
+    </div>
+
+
+</body>
+</html>

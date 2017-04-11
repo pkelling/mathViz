@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" async>
+        
+        MathJax.Hub.Config({
+          config: ["MMLorHTML.js"],
+          jax: ["input/AsciiMath","output/HTML-CSS","output/NativeMML", "output/CommonHTML"],
+          extensions: ["asciimath2jax.js","MathMenu.js","MathZoom.js", "CHTML-preview.js"]
+        });
+        
+        var mathDiv = document.getElementById("mathDiv");
+        
+        mathDiv.addEventListener("click",function(){
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,"mathDiv"]);
+            MathJax.Hub.Queue(function(){
+                document.getElementById('communicator').value = 'ready';
+            });  
+        });
+        
+
+        
+    </script>
+    
+    <style>
+        #mathDiv{
+            position:absolute;
+            background: #d8dcc6;
+            color: black;
+            border:  1px solid #595959;
+            border-radius: 15px;
+            margin-top:1.5em;
+            padding-right: 15px;
+            font-size: 1.5em;
+            z-index:9999;
+            padding: 10px;
+            display:none;
+        }
+        .comments{
+            margin-top: 35px;
+            font-size: .8em;
+            color: #353535;
+        }
+        .comments:first-child{
+            margin-top: 0px;
+        }
+        
+        #communicator{
+            display: none;
+        }
+    </style>
+    
+</head>
+<body>
+    <div id="mathDiv">
+        
+    </div>
+    <input id="communicator" type="text" value="notReady"/>
+</body>
+</html>
