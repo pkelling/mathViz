@@ -1,9 +1,5 @@
 /*
     TODO:
-    -display options:
-        =distance from right
-        =css options (background, font, size....,padding)
-    
         
 */
 define(function (require, exports, module) {
@@ -18,82 +14,6 @@ define(function (require, exports, module) {
     
     // gets editor
     window.editor = EditorManager.getActiveEditor();
-    
-    
-    
-    /* ************************************************
-        Handle Preferences
-        -Set defaults
-        -get preferences
-    */
-    var prefs = PreferencesManager.getExtensionPrefs("math");
-    
-    // Dont show these - its regex so escape chars!!  (Ex: Math. => Math\\.)
-    prefs.definePreference("dontShow" , "array", ["Math\\."],{
-                                        description: "This is...",
-                                        valueType: "string"
-    });
-
-    // Dont Escape - Convert to Other Form (theta => ϴ)
-    prefs.definePreference("dontEscape","array", ["theta"],{
-        description: "This is...",
-        valueType: "string"
-    });
-    
-    prefs.definePreference("replace","object",{
-                    arcsin:"Math\\.asin",
-                    arccos:"Math\\.acos",
-                    arctan:"Math\\.atan"
-    });
-    
-    var cssPrefHandle = prefs.definePreference("style","object",{
-        mathDiv:  {selector:'#', css:{}},
-        equations:{selector:'.', css:{}},
-        comments: {selector:'.', css:{}}
-    });
-    
-    
-    // get prefs
-    var dontShow = prefs.get("dontShow"); 
-    var dontEscape = prefs.get('dontEscape');
-    var replaceObj = prefs.get('replace');
-    var cssPrefs = prefs.get('style');
-    
-    
-    
-    /* ***********************************************
-        Handle Css prefs and changes
-    */
-    function cssChanges(cssPrefs){
-        for(var tag in cssPrefs){
-            
-            var obj = cssPrefs[tag];
-            var selector = obj.selector;
-            var handle = $(selector+tag);
-            handle.css(obj.css);
-                
-        }
-    }
-    
-    cssChanges(cssPrefs);
-    
-    cssPrefHandle.on('change',function(){
-        cssChanges(prefs.get('style'));
-    });
-    
-    
-    
-    
-    
-    /* ************************************************
-        Get Special Sequences to escape (defs.json)
-    */
-    
-    var json_file = require('text!defs.json');
-    var escapeArray = JSON.parse(json_file).escapes;
-    for(var i=0; i<dontEscape.length; i++){ 
-        escapeArray = escapeArray.filter(val => val !== dontEscape[i]);
-    }
     
     
     
@@ -124,8 +44,98 @@ define(function (require, exports, module) {
     
     
     
+    
     /* ************************************************
-        These functions:
+        Handle Preferences
+        -Set defaults
+        -get preferences
+    */
+    var prefs = PreferencesManager.getExtensionPrefs("math");
+    
+    // Dont show these - its regex so escape chars!!  (Ex: Math. => Math\\.)
+    prefs.definePreference("dontShow" , "array", ["Math\\."],{
+                                        description: "This is...",
+                                        valueType: "string"
+    });
+
+    // Dont Escape - Convert to Other Form (theta => ϴ)
+    prefs.definePreference("dontEscape","array", ["theta"],{
+        description: "This is...",
+        valueType: "string"
+    });
+    
+    prefs.definePreference("replace","object",{
+                    
+    });
+    
+    var cssPrefHandle = prefs.definePreference("style","object",{
+        rightOffset: 35,
+        mathDiv:  {css:{}},
+        equations:{css:{}},
+        comments: {css:{}}
+    });
+    
+    
+    // get prefs
+    var dontShow = prefs.get("dontShow"); 
+    var dontEscape = prefs.get('dontEscape').concat(['sin','arccos']);
+    var replaceObj = prefs.get('replace');
+    var cssPrefs = prefs.get('style');
+    
+    
+    Object.assign(replaceObj,{arcsin:"Math\\.asin"},{arccos:"Math\\.acos"},{arctan:"Math\\.atan"});
+    
+    
+    
+    /* ***********************************************
+        Handle Css prefs and changes
+    */
+    var rightOffset;
+    function cssChanges(cssPrefs){
+        for(var tag in cssPrefs){
+            if(tag == 'rightOffset'){
+                rightOffset = cssPrefs[tag];
+                continue;
+            }
+            
+            var selector = (tag == "mathDiv")? "#" : ".";
+            var handle = $(selector+tag);
+            
+            var obj = cssPrefs[tag];
+            handle.css(obj.css);
+                
+        }
+    }
+    
+    cssChanges(cssPrefs);
+    
+    cssPrefHandle.on('change',function(){
+        cssChanges(prefs.get('style'));
+    });
+    
+    
+    
+    
+    
+    
+    /* ************************************************
+        Get Special Sequences to escape (defs.json)
+    */
+    
+    var json_file = require('text!defs.json');
+    var escapeArray = JSON.parse(json_file).escapes;
+    for(var i=0; i<dontEscape.length; i++){ 
+        escapeArray = escapeArray.filter(val => val !== dontEscape[i]);
+    }
+    
+
+
+        
+    
+    
+    
+    /* ************************************************
+        Main Functions:
         
         1) find the equations
         2) format them
@@ -156,10 +166,25 @@ define(function (require, exports, module) {
         return(allLines);
     }
     
-    //convert js to MathJax readable format
+    //convert js to MathJax readable format (Ascii)
     function formatEquation(fullEquation){
+        /**************************
+        * How equations are formatted:
+        *   1) Remove all Spaces
+        *   2) Math.pow(bs,exp) => bs^exp
+        *   3) Math.logb(x) => log_b(x)
+        *   4) Replacements (replacement : toReplace)
+        *   5) Delte sequences from dontShow[]
+        *   6) Disguise sequences from dontEscape[i] as => &&i&& 
+        *   7) Escape special char sequences (from defs.json)
+        *   8) unDisguise dontEscape[] sequences
+        *   9) add () for division so it doesn't cut words
+        *   10) add () to underScores so it doesn't cut words
+        *   11) convert PI to pi (so it shows symbol)
+        */  
         
         var newEq = fullEquation.replace(/ /g,"");
+        
         
         //convert Math.pow(var,3) => var^3
         var powPos = newEq.indexOf('Math.pow(');
@@ -177,11 +202,39 @@ define(function (require, exports, module) {
         }
         
         
+        
+        //convert Math.log()
+        var logPos = newEq.indexOf('Math.log');
+        while(logPos>=0){
+            var parPos = newEq.indexOf('(',logPos);
+            
+            if((parPos-logPos) > 8){
+                //log has base
+                
+                if((newEq[parPos-1]) == 'p'){
+                    
+                    //log1p()
+                    newEq = newEq.slice(0,logPos+8) + '_e(1+' + newEq.slice(parPos+1);
+                }else{
+                    newEq = newEq.slice(0,logPos+8) + "_" + newEq.slice(logPos+8);
+                }
+            }else{
+                //base e
+                newEq = newEq.slice(0,logPos+8) + "_e" + newEq.slice(logPos+8);
+            }
+            
+            var logPos = newEq.indexOf('Math.log',parPos);
+            
+        }
+        
+        
+        
         //replacements (Math.acos => arccos)
         for(var replacement in replaceObj){
             var regEx = new RegExp(replaceObj[replacement],'g');            
             newEq = newEq.replace(regEx,replacement);
         }
+        
         
         
         //delete sequences from dontShow array
@@ -191,22 +244,24 @@ define(function (require, exports, module) {
         }
         
         
-        //Capitalize sequences from dontEscape Array (so they dont escape)
+        
+        //Disguise sequences in dontEscape[] as => &&index&& (so they dont escape)
         for(var i = 0; i<dontEscape.length; i++){
-            var str = dontEscape[i];
+            var replacement = '&&' +i+ '&&';
             
             // operators or undefined on both sides
-            var reStr = "(^|[<>+=/*()\\-_])" + str + "([<>+=/*()\\-_]|$)";
+            var reStr = "(^|[<>+=/*)(\-_])" + dontEscape[i] + "([<>+=/*)(\-_]|$)";
             var regEx = new RegExp(reStr,'g');
-            var pos = newEq.search(regEx);
             
-            while(pos>-1){ 
+            var pos = newEq.search(regEx);   
+            while(pos > -1){
                 if(pos != 0){ pos++; }
-                newEq = newEq.slice(0,pos) + str.toUpperCase() + newEq.slice(pos+str.length);
-                pos = newEq.search(regEx);    
+                newEq = newEq.slice(0,pos) + replacement + newEq.slice(pos+dontEscape[i].length);
+                pos = newEq.search(regEx);
             }
         }
         
+
         
         // escape special char sequences
         for(var i=0; i<escapeArray.length; i++){
@@ -228,14 +283,15 @@ define(function (require, exports, module) {
         }
         
         
-        //unCapitalize sequences from dontEscape Array
+        
+        //unDisguise sequences from dontEscape Array
         for(var i = 0; i<dontEscape.length; i++){
-            var capStr = dontEscape[i].toUpperCase();
             
             // only the strings by themselves (operators on both sides)
-            var regEx = new RegExp(capStr,'g');
+            var regEx = new RegExp('&&'+i+'&&','g');
             newEq = newEq.replace(regEx,dontEscape[i]);
         }
+       
         
         
         //add () for division (if not, it splits vars)
@@ -257,15 +313,28 @@ define(function (require, exports, module) {
             if(aft != "("){
                 pos = pos+1;
                 newEq = newEq.slice(0,pos) + '(' + newEq.slice(pos);
+                var opens = 0;
+                var closes = 0;
+                var end = false;
                 
-                while(typeof newEq[pos] != "undefined" && newEq[pos].search(/([^+\-=/<>*)])/) >= 0){
+                while( (end==false) && (typeof newEq[pos] != "undefined") ){
+                    
+                    //check for operators
+                    end = (newEq[pos].search(/[+\-=/<>*]/) >= 0);
+                    
+                    if(newEq[pos] == "("){ opens++; }
+                    else if(newEq[pos] == ")"){ closes++; }
+                    
+                    if(opens != closes){ end = false; }
                     pos++;
                 }
+                
                 newEq = newEq.slice(0,pos) + ')' + newEq.slice(pos);
             }
             divisPos = newEq.indexOf('/',pos+1);
         }
-
+        
+        
         
         //convert PI to pi
         var posPI = newEq.indexOf('PI');
@@ -275,11 +344,12 @@ define(function (require, exports, module) {
         }
         
         
+        
         //fix underscores
         var _Pos = newEq.indexOf('_');
         while(_Pos >=0){
             var endPos = _Pos+1;
-            while(typeof newEq[endPos] != 'undefined' && newEq[endPos].search(/([^+\-=/<>*])/) >=0 ){
+            while(typeof newEq[endPos] != 'undefined' && newEq[endPos].search(/[^(+\-=/<>*]/) >=0 ){
                 endPos++;   
             }
             
@@ -289,6 +359,7 @@ define(function (require, exports, module) {
             newEq = newEquation;
             _Pos = newEq.indexOf('_',_Pos+2);
         }
+        
         
         return(newEq);
     }
@@ -320,7 +391,7 @@ define(function (require, exports, module) {
             var divHeight = mathDiv.outerHeight(true);
             var bodyHeight = $('body').outerHeight();
             var heightDif = (divHeight+css.top) - bodyHeight;
-            if(heightDif > 0){
+            if(heightDif > -100){
                 css.height = String(divHeight - heightDif - 75) + 'px';
                 css.overflowY = 'scroll';
             }
@@ -330,7 +401,7 @@ define(function (require, exports, module) {
             var divWidth = mathDiv.outerWidth(true);
             var bodyWidth = $('body').outerWidth(true);
             var widthDif = bodyWidth - divWidth;
-            css.left = widthDif - 35;
+            css.left = widthDif - rightOffset;
         }
         else{
             //Set left value
@@ -347,6 +418,10 @@ define(function (require, exports, module) {
         var allEquations = findEquation();
         var newEquations = [];
         var numOfEqs = 0;
+        
+        //return if allEquations is empty;
+        if(allEquations.length == 0){ return; }
+        
         
         //format equations (skip comments)
         for(var i=0; i<allEquations.length; i++){
@@ -386,13 +461,15 @@ define(function (require, exports, module) {
     
     
     
+    
+    
+    
     /* ************************************************
         These handle the shortcut command
             -it registers the command
             -then, adds it to menu
                 (I don't know of another way to add shortcuts for now)
     */
-    
     
     var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
     var MY_COMMAND_ID = "pk.showMath";
