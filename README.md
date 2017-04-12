@@ -1,3 +1,6 @@
-mathDisplay is a brackets extension that displays javascript math in an easy to understand way.
+mathDisplay is a brackets extension that displays javascript math in an easy to understand way.     
 
- <img src="wiki/images/multiLine.png" width="350"/>
+ <img src="wiki/images/multiLine.png" width="800"/>
+
+
+The following preferences are allowed:
