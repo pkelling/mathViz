@@ -69,7 +69,7 @@ define(function (require, exports, module) {
                                                arctan:"Math.atan"});
     
     var cssPrefHandle = prefs.definePreference("style","object",{
-        rightOffset: 35,
+        rightOffset: 45,
         mathDivCSS:  {},
         equationsCSS:{},
         commentsCSS: {}
