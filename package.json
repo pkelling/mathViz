@@ -3,7 +3,7 @@
     "title": "Math Visualization",
     "description": "Visualize javascript math using MathJax",
     "homepage": "https://github.com/pkelling/mathViz",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "author": "Patrick Kelling",
     "keywords": ["math", "visualize", "equations", "MathJax"],
     "license": "MIT"
