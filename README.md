@@ -21,7 +21,7 @@ Make sure you escape special RegEx chars
 Replace is an object{ replacement : toBeReplaced }       
 Make sure you escape toBeReplaced values.
 
-    "math.replace": {
+    "mathViz.replace": {
         "arcsin": "Math\\.asin",
         "arccos": "Math\\.acos",
         "arctan": "Math\\.atan"
@@ -33,7 +33,7 @@ Don't escape is an array of objects you want to prevent from being escape
 -A full list of escaped sequences is in the defs.json file (let me know if you find some it's missing)
 (arccos is here because cc is a special sequence, and if the cc in arccos is escaped, it wont appear as expected)
 
-    "math.dontEscape": ["arccos", "theta"]
+    "mathViz.dontEscape": ["arccos", "theta"]
   
 
 Style allows you to control css settings.    
@@ -41,7 +41,7 @@ Style allows you to control css settings.
 -All values listed are default values. The style is updated whenever you save your Preferences file.   
 -rightOffset only applies when using multiple lines
     
-    "math.style": {
+    "mathViz.style": {
         "mathDivCSS": {
                 'position'      : 'absolute',
                 'display'       : 'none',
