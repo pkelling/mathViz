@@ -25,7 +25,7 @@ define(function (require, exports, module) {
     */
     function appendHTML(){   
         // get MathJax filePath to pass to mathHTML
-        var filePath =  FileUtils.getNativeModuleDirectoryPath(module) + '/MathJax/MathJax.js?config=default';
+        var filePath =  FileUtils.getNativeModuleDirectoryPath(module) + '/MathJax/MathJax.js?config=MMLorHTML';
         
         //add src="filePath" to script tag
         var template = require("text!math.html");
