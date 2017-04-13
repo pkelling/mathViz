@@ -49,30 +49,10 @@
        
         </script>
         <style scoped>
-            #mathDiv{
-                position:absolute;
-                background: #d8dcc6;
-                color: black;
-                border:  1px solid #595959;
-                border-radius: 15px;
-                margin-top:1.5em;
-                padding-right: 15px;
-                font-size: 1.5em;
-                z-index:150;
-                padding: 10px;
-                display:none;
-            }
-            .equations{
-
-            }
-            .comments{
-                margin-top: 50px;
-                font-size: .8em;
-                color: #353535;
-            }
             .comments:first-child{
-                margin-top: 0px;
-            }   
+                margin-top: 0px !important;
+            }  
+ 
             #communicator{
                 display: none;
             }
@@ -82,7 +62,7 @@
         </div>
         
         <!-- These make sure that the class exists before trying to change it -->
-        <p class="comments" style="display:none;"></p>
+        <p class="comments" style="display:none;color:red;"></p>
         <p class="equations" style="display:none;"></p>
         
         <!-- This tells js when MathJax has finish parsing page -->

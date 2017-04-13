@@ -50,68 +50,83 @@ define(function (require, exports, module) {
         -Set defaults
         -get preferences
     */
-    var prefs = PreferencesManager.getExtensionPrefs("math");
+    var prefs = PreferencesManager.getExtensionPrefs("mathViz");
     
     // Dont show these - its regex so escape chars!!  (Ex: Math. => Math\\.)
     prefs.definePreference("dontShow" , "array", ["Math\\."],{
-                                        description: "This is...",
+                                        description: "Dont show in final display",
                                         valueType: "string"
     });
 
     // Dont Escape - Convert to Other Form (theta => ϴ)
-    prefs.definePreference("dontEscape","array", ["theta"],{
-        description: "This is...",
+    prefs.definePreference("dontEscape","array", ["arccos","theta"],{
+        description: "For full list of escaped chars, go to defs.json file",
         valueType: "string"
     });
     
-    prefs.definePreference("replace","object",{
-                    
-    });
+    prefs.definePreference("replace","object",{arcsin:"Math.asin",
+                                               arccos:"Math.acos",
+                                               arctan:"Math.atan"});
     
     var cssPrefHandle = prefs.definePreference("style","object",{
         rightOffset: 35,
-        mathDiv:  {css:{}},
-        equations:{css:{}},
-        comments: {css:{}}
+        mathDivCSS:  {},
+        equationsCSS:{},
+        commentsCSS: {}
     });
     
     
     // get prefs
     var dontShow = prefs.get("dontShow"); 
-    var dontEscape = prefs.get('dontEscape').concat(['sin','arccos']);
+    var dontEscape = prefs.get('dontEscape').concat(['sin']);
     var replaceObj = prefs.get('replace');
     var cssPrefs = prefs.get('style');
     
     
-    Object.assign(replaceObj,{arcsin:"Math\\.asin"},{arccos:"Math\\.acos"},{arctan:"Math\\.atan"});
+    
     
     
     
     /* ***********************************************
-        Handle Css prefs and changes
+        Handle Css Prefs, then changes
     */
-    var rightOffset;
-    function cssChanges(cssPrefs){
-        for(var tag in cssPrefs){
-            if(tag == 'rightOffset'){
-                rightOffset = cssPrefs[tag];
-                continue;
-            }
-            
-            var selector = (tag == "mathDiv")? "#" : ".";
-            var handle = $(selector+tag);
-            
-            var obj = cssPrefs[tag];
-            handle.css(obj.css);
+    
+    var cssMathDiv = Object.assign({
+                'position'      : 'absolute',
+                'display'       : 'none',
+                'margin-top'    :'1.5em',
+                'padding'       : '10px',
+                'padding-right' : '15px',
+                'z-index'       :'150',
+                'background'    : '#d8dcc6',
+                'border'        :  '1px solid #595959',
+                'border-radius' : '15px',
+                'color'         : 'black',
+                'font-size'     : '1.5em'
+    }, cssPrefs.mathDivCSS);
+    var cssEquations = Object.assign({},cssPrefs.equationsCSS);
+    var cssComments = Object.assign({
+                'margin-top': '50px',
+                'font-size': '.8em',
+                'color': '#353535'
+    },cssPrefs.commentsCSS);
+    var rightOffset = cssPrefs.rightOffset;
+    
+    
+    function cssChanges(){
+        
+        var cssPrefsNow = prefs.get('style');
+        
+        Object.assign( cssMathDiv, cssPrefsNow.mathDivCSS);
+        Object.assign( cssEquations, cssPrefsNow.equationsCSS);
+        Object.assign( cssComments, cssPrefsNow.commentsCSS);
+        
+        rightOffset = cssPrefsNow.rightOffset;
                 
-        }
     }
     
-    cssChanges(cssPrefs);
     
-    cssPrefHandle.on('change',function(){
-        cssChanges(prefs.get('style'));
-    });
+    cssPrefHandle.on('change',cssChanges);
     
     
     
@@ -140,8 +155,9 @@ define(function (require, exports, module) {
         1) find the equations
         2) format them
         3) set the display location 
-        4) show the Math
-        5) Hides math when screen is clicked
+        4) sets the css values
+        5) show the Math
+        6) Hides math when screen is clicked
     */
         
     //returns array of equations (1 for each line)
@@ -261,25 +277,32 @@ define(function (require, exports, module) {
             }
         }
         
-
+        
         
         // escape special char sequences
         for(var i=0; i<escapeArray.length; i++){
             
-            //check if they are in equation
-            if(!newEq.includes(escapeArray[i])){ continue; }
+            var escapeStr = escapeArray[i];
+            var regEx = new RegExp(escapeStr,'g');
             
-            var regEx = new RegExp(escapeArray[i],'g');
-            var replaceArray = escapeArray[i].split("");
+            //check if they are in equation
+            if(newEq.search(regEx) == -1){ continue; }
+            
+            escapeStr = escapeStr.replace('\\',"");
+            var replaceArray = escapeStr.split("");
             var foo = [];
             
             for(var n=0;n<replaceArray.length;n++){
                 foo.push(replaceArray[n]);
-                if(n<replaceArray.length-1) { foo.push("\\") };
+                if(n<replaceArray.length-1) { foo.push("\\"); }
             }
-            
             var replacement = foo.join("");
             newEq = newEq.replace(regEx,replacement);
+            
+            if(newEq.search(regEx) != -1){
+                //for 3 letters 'nnn' (bc only first 2 register as nn group)
+                newEq = newEq.replace(regEx,replacement);
+            }
         }
         
         
@@ -292,7 +315,7 @@ define(function (require, exports, module) {
             newEq = newEq.replace(regEx,dontEscape[i]);
         }
        
-        
+
         
         //add () for division (if not, it splits vars)
         var divisPos = newEq.indexOf('/');
@@ -300,6 +323,8 @@ define(function (require, exports, module) {
             var fore = newEq[divisPos-1];
             var aft = newEq[divisPos+1];
             var pos = divisPos;
+            
+            //before division
             if(fore != ")"){
                 newEq = newEq.slice(0,pos) + ')' + newEq.slice(pos);
                 
@@ -307,33 +332,36 @@ define(function (require, exports, module) {
                     pos--;
                 }
                 newEq = newEq.slice(0,pos+1) + '(' + newEq.slice(pos + 1);
-                pos = divisPos + 2;
+                pos = divisPos + 3;
             }
             
+            //after division
             if(aft != "("){
-                pos = pos+1;
                 newEq = newEq.slice(0,pos) + '(' + newEq.slice(pos);
                 var opens = 0;
                 var closes = 0;
                 var end = false;
                 
-                while( (end==false) && (typeof newEq[pos] != "undefined") ){
+                while( end==false ){
+                    pos++;
+                    
+                    if(typeof newEq[pos] == "undefined"){ break; }
                     
                     //check for operators
                     end = (newEq[pos].search(/[+\-=/<>*]/) >= 0);
                     
+                    //check for matching ()
                     if(newEq[pos] == "("){ opens++; }
                     else if(newEq[pos] == ")"){ closes++; }
-                    
                     if(opens != closes){ end = false; }
-                    pos++;
+                      
                 }
+                
                 
                 newEq = newEq.slice(0,pos) + ')' + newEq.slice(pos);
             }
             divisPos = newEq.indexOf('/',pos+1);
         }
-        
         
         
         //convert PI to pi
@@ -412,6 +440,15 @@ define(function (require, exports, module) {
         
     }
     
+    //set css values
+    function setCss(){
+        
+        mathDiv.css(cssMathDiv);
+        $('.equations').css(cssEquations);
+        $('.comments').css(cssComments);
+        
+    }
+    
     //calls other functions then displays Math
     function showMath(){
         mathDiv.hide();
@@ -435,9 +472,13 @@ define(function (require, exports, module) {
 
         }
         
+        
         mathDiv.css({height: 'auto'});
         mathDiv.html(newEquations.join(""));
         mathDiv.trigger('click');
+        
+        setCss();
+        
         
         //waits until mathjax is ready (communicates through input value)
         var commHandle = $('#communicator');
