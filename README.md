@@ -42,7 +42,7 @@ Style allows you to control css settings.
 -rightOffset only applies when using multiple lines
     
     "math.style": {
-        "mathDivCss": {
+        "mathDivCSS": {
                 'position'      : 'absolute',
                 'display'       : 'none',
                 'margin-top'    :'1.5em',
@@ -55,10 +55,10 @@ Style allows you to control css settings.
                 'color'         : 'black',
                 'font-size'     : '1.5em'
         },
-        "equations": {
+        "equationsCSS": {
            
         },
-        "comments": {
+        "commentsCSS": {
                 'margin-top': '50px',
                 'font-size': '.8em',
                 'color': '#353535'
