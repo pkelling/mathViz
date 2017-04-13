@@ -1,4 +1,4 @@
-mathDisplay is a brackets extension that displays javascript math in an easy to understand way using MathJax.   
+mathViz is a brackets extension that displays javascript math in an easy to understand way using MathJax.   
 
 To use, just hit CMD-ALT-M while the cursor is on line line you want.     
 For multiple lines, hightlight the equations you want, and hit CMD-ALT-M.
