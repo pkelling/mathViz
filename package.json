@@ -1,7 +1,7 @@
 {
     "name": "math_viz",
     "title": "Math Visualization",
-    "description": "Visualize math equations using MathJax",
+    "description": "Visualize javascript math using MathJax",
     "homepage": "https://github.com/pkelling/mathViz",
     "version": "0.1.0",
     "author": "Patrick Kelling",
