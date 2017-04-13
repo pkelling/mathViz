@@ -1,8 +1,8 @@
 {
-    "name": "pk.mathDisplay",
+    "name": "mathViz",
     "title": "Math Visualization",
     "description": "Visualize math equations using MathJax",
-    "homepage": "https://github.com/pkelling/mathDisplay",
+    "homepage": "https://github.com/pkelling/mathViz",
     "version": "0.1.0",
     "author": "Patrick Kelling",
     "keywords": ["math", "visualize", "equations", "MathJax"],
